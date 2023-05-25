@@ -1,8 +1,0 @@
-<RCC>
-    <qresource prefix="/img">
-        <file>Edge.png</file>
-        <file>RemoveEdge.png</file>
-        <file>RemoveVertex.png</file>
-        <file>Vertex.png</file>
-    </qresource>
-</RCC>
