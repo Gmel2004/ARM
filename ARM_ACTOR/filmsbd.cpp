@@ -31,6 +31,7 @@ void FilmsBD::on_ReturnToMenuButton_clicked()
 {
     Menu *m_Window = new Menu;
     m_Window->setGeometry(geometry());
+    m_Window->setMinimumSize(792, 539);
     m_Window->show();
     hide();
 }

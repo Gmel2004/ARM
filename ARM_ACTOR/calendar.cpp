@@ -56,6 +56,7 @@ void Calendar::on_ReturnToMenuButton_clicked()
 {
     Menu *m_Window = new Menu;
     m_Window->setGeometry(geometry());
+    m_Window->setMinimumSize(946, 630);
     m_Window->show();
     hide();
 }
@@ -65,4 +66,3 @@ void Calendar::on_tableView_clicked(const QModelIndex &index)
 {
     row = index.row();
 }
-

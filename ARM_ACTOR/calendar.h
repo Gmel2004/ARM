@@ -2,8 +2,6 @@
 #define CALENDAR_H
 
 #include <QWidget>
-
-#include <QWidget>
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlTableModel>
