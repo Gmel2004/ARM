@@ -39,5 +39,3 @@ void Menu::on_ToCaledarButton_clicked()
     m_Calendar->show();
     hide();
 }
-
-,
