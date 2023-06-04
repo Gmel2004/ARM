@@ -38,6 +38,10 @@ private:
     QString Log, Pas;
     QMap<QString, QString> UsersData;
     QJsonObject UsersDataJson;
+    QJsonObject json;
+    bool isLogValid();
+    bool isPasValid();
+
 
 };
 #endif // AUTHORIZATION_H
