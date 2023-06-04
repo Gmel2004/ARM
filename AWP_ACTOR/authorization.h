@@ -4,7 +4,13 @@
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QMap>
+#include <QFile>
 #include <QJsonObject>
+#include <QFileDialog>
+#include <QStandardItem>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonParseError>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Authorization; }
@@ -17,6 +23,9 @@ class Authorization : public QMainWindow
 public:
     Authorization(QWidget *parent = nullptr);
     ~Authorization();
+    QJsonDocument doc;
+    QJsonArray docAr;
+    QJsonParseError docError;
 
 private slots:
     void on_RegisterButton_clicked();

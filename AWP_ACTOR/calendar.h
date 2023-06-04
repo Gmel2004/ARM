@@ -4,9 +4,15 @@
 #include <QWidget>
 #include <authorization.h>
 #include <QWidget>
+#include <QtSql>
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlTableModel>
+#include <string>
+#include <QLabel>
+#include <QLineEdit>
+#include<fstream>
+using namespace std;
 
 namespace Ui {
 class Calendar;
@@ -34,12 +40,25 @@ private slots:
 
     void on_SignOutButton_clicked();
 
+    void AddData();
+
+    void on_ShowCurentDatesButton_clicked();
+
+    void on_SaveChangesButton_clicked();
+
 private:
     Ui::Calendar *ui;
     QSqlDatabase db;
     QSqlQuery *query;
     QSqlTableModel *model;
     int row;
+    QLineEdit *Input1;
+    QLineEdit *Input2;
+    QString str;
+    bool isDataValid();
+    void on_ShowFullButton_clicked();
+    list<int> NewDatesNumbers;
+    bool FirstAdd = false;
 };
 
 #endif // CALENDAR_H

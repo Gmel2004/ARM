@@ -1,7 +1,6 @@
 #include "authorization.h"
 #include "ui_authorization.h"
 #include "calendar.h"
-#include <QJsonObject>
 
 Authorization::Authorization(QWidget *parent)
     : QMainWindow(parent)
@@ -30,9 +29,22 @@ void Authorization::on_RegisterButton_clicked()
 {
     Log = ui->InputLog_2->text();
     Pas = ui->InputPas_2->text();
+    QFile file("./Users.json");
+    file.open(QIODevice::ReadOnly|QFile::Text);
+    doc = QJsonDocument::fromJson(QByteArray(file.readAll()), &docError);
+    file.close();
     if (UsersData.find(Log) == UsersData.end()) {    //проверка на оригинальность логина
+        file.open(QIODevice::WriteOnly);
+        QVariantMap map;
+        map.insert("Log", Log);
+        map.insert("Pas", Pas);
+        QJsonObject json = QJsonObject::fromVariantMap(map);
+        QJsonArray docToWrite = doc.object().value("Users").toArray();
+        docToWrite.append(json);
+        doc.setArray(docToWrite);
+        file.write("{\"Users\":"+doc.toJson()+"}");
+        file.close();
         QMessageBox::about(this, "Регистрация", "Регистрация прошла успешно!");
-           //Занесение в бд
         ToCalendar();
     }
     else {
