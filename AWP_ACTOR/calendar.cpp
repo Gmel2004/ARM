@@ -3,28 +3,7 @@
 #include <QPainter>
 #include <QFont>
 #include <QTableWidget>
-
-bool isDateTimeValid(string str) {
-    return !(stoi(str.substr(3, 2)) > 12//месяц не может быть > 12
-             || stoi(str.substr(8, 2)) > 31//день не может быть > 31
-             || (stoi(str.substr(8, 2)) == 31 && ( QList<int>{4, 6, 9, 11}.contains(stoi(str.substr(3, 2)))))//не может быть 31 день в данные месяца
-             || (str.substr(3, 2) == "02" && (stoi(str.substr(8, 2)) > 29//в феврале не может быть больше 29 дней
-                                              || (stoi(str.substr(8, 2)) == 29 && (stoi(str.substr(0, 4)) % 100 % 4 != 0))))//проверка на високосный
-             || stoi(str.substr(11, 2)) > 23 || stoi(str.substr(14, 2)) > 59);//Проверка времени
-}
-bool isTemplate(string str) {
-    int cnt = 0;
-    for (char i : str) {
-        if (isdigit(i)) {
-            cnt += 1;
-        }
-    }
-    return ((str[4] == '.') && (str[7] == '.') && (str[10] == ' ') && (str[13] == ':') && (cnt == 12));
-}
-
-void CheckStr() {
-
-}
+#include <film.h>
 
 Calendar::Calendar(QString m_Log, QWidget *parent) :
     QWidget(parent),
@@ -33,37 +12,28 @@ Calendar::Calendar(QString m_Log, QWidget *parent) :
     Log = m_Log;
     ui->setupUi(this);
     setWindowTitle("Календарь");
-    db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName("./" + Log + "Calendar.db");
-    db.open();
-    query = new QSqlQuery(db);
-    str = "CREATE TABLE Календарь(Название TEXT, Дата TEXT);";
-    query->exec(str);
-    model = new QSqlTableModel(this, db);
-    model->setTable("Календарь");
-    model->select();
-    ui->tableView->setModel(model);
-    for(int i = 0; i < 2; i++) {
-        ui->tableView->setColumnWidth(i, (width() - 38)/2);
+    for(int i = 0; i < 2; i++) {//важно, если будет resize, то нужно как-то менять размер?
+        ui->tableWidget->setColumnWidth(i, (width() - 38)/2);
     }
-    on_ShowCurentDatesButton_clicked();
-
-    ifstream CurrentDates("./" + Log.toStdString() + "FullDates.txt");
-    string Date;
-    while (getline(CurrentDates, Date)) {
+    //считывание данных из файла
+    QFile file("./Calendar" + Log + ".json");
+    file.open(QIODevice::ReadOnly|QFile::Text);
+    doc = QJsonDocument::fromJson(QByteArray(file.readAll()), &docError);
+    file.close();
+    QJsonValue Dates = doc.object().value("Dates");
+    docAr = QJsonValue(Dates).toArray();
+    json = docAr.at(0).toObject();
+    //Выделение дат в календаре
+    for (QString Date : json.keys()) {
         QTextCharFormat Format;
         QFont f = QFont("MS Shell Dig 2", 14);
         f.setOverline(true);
         Format.setFont(f);
-        ui->calendarWidget->setDateTextFormat(QDate::fromString(QString::fromStdString(Date),"yyyy.MM.dd"), Format);
+        ui->calendarWidget->setDateTextFormat(QDate::fromString(QString::fromStdString(Date.toStdString().substr(0, 10)),"yyyy.MM.dd"), Format);
     }
-}
+    //вывод актуальных дат в таблицу
+    on_ShowCurrentDatesButton_clicked();
 
-bool Calendar::isDataValid() {
-    string str = ui->tableView->model()->data(ui->tableView->model()->index(row, 1)).toString().toStdString().substr(0, 10);
-    return (ui->tableView->model()->data(ui->tableView->model()->index(row, 0)).toString() != ""
-            || isTemplate(str)
-            || isDateTimeValid(str));
 }
 
 Calendar::~Calendar()
@@ -71,108 +41,179 @@ Calendar::~Calendar()
     delete ui;
 }
 
+//Окно перехода на страницу мероприятия
 void Calendar::on_MoveButton_clicked()
 {
+    window = new QWidget;
+    Input1 = new QLineEdit;
+    QPushButton *okButton = new QPushButton(tr("OK"));
 
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(new QLabel(tr("Введите индекс ячейки, для перехода к странице мероприятия: ")), 0, 0);
+    layout->addWidget(Input1, 0, 1);
+    layout->addWidget(okButton, 1, 1, Qt::AlignRight);
+    layout->setSizeConstraint(QLayout::SetFixedSize);
+    window->setLayout(layout);
+    window->setWindowTitle("Ввод данных");
+
+    connect(okButton, &QPushButton::clicked, this, &Calendar::on_MoveButtonOk_cliked);
+    window->show();
 }
 
+//Переход на страницу мероприятия
+void Calendar::on_MoveButtonOk_cliked() {
+    QWidget *m_Film = new Film(Log, ui->tableWidget->item(Input1->text().toInt(), 0)->text(), nullptr);
+    m_Film->setGeometry(geometry());
+    m_Film->show();
+    close();
+}
+
+//окно добавления данных
 void Calendar::on_AddButton_clicked()
 {
-    if (!FirstAdd) {
-        FirstAdd = true;
-        char FirstAddMessage[500] = "Все неправильно введённые данные будут\nудалены после завершения сессии.\n\n"
-                      "Формат ввода данных:\n"
-                      "Название не может являть пустой строкой\n\n"
-                      "Дата: гггг.мм.дд чч:мм";
-        QMessageBox::warning(this, "Внимание", FirstAddMessage);
-    }
-    NewDatesNumbers.push_back(model->rowCount());
-    model->insertRow(model->rowCount());
+    window = new QWidget;
+    Input1 = new QLineEdit;
+    Input2 = new QDateTimeEdit;
+    Input2->setDateTime(QDateTime::currentDateTime());
+    Input2->setDisplayFormat("yyyy.MM.dd HH:mm");
+    QPushButton *okButton = new QPushButton(tr("OK"));
+
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(new QLabel(tr("Название:")), 0, 0);
+    layout->addWidget(Input1, 0, 1);
+    layout->addWidget(new QLabel(tr("Дата и время:")), 1, 0);
+    layout->addWidget(Input2, 1, 1);
+    layout->addWidget(okButton, 2, 1, Qt::AlignRight);
+    layout->setSizeConstraint(QLayout::SetFixedSize);
+    window->setLayout(layout);
+    window->setWindowTitle("Ввод данных");
+
+    connect(okButton, &QPushButton::clicked, this, &Calendar::on_InputDataOkButton_Clicked);
+    window->show();
+
 }
 
+//окно удаления данных
 void Calendar::on_DelButton_clicked()
 {
-    for (auto i = NewDatesNumbers.begin(); i != NewDatesNumbers.end();) {
-        if (*i == row) {
-            i = NewDatesNumbers.erase(i);
-        }
-        else {
-            i++;
+    window = new QWidget;
+    Input1 = new QLineEdit;
+    QPushButton *okButton = new QPushButton(tr("OK"));
+
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(new QLabel(tr("Введите индекс ячейки, которую нужно удалить: ")), 0, 0);
+    layout->addWidget(Input1, 0, 1);
+    layout->addWidget(okButton, 1, 1, Qt::AlignRight);
+    layout->setSizeConstraint(QLayout::SetFixedSize);
+    window->setLayout(layout);
+    window->setWindowTitle("Ввод данных");
+
+    connect(okButton, &QPushButton::clicked, this, &Calendar::on_DelButtonOk_clicked);
+    window->show();
+}
+
+//удаление данных
+void Calendar::on_DelButtonOk_clicked() {
+    auto key = ui->tableWidget->itemAt(Input1->text().toInt(), 1)->text();
+    auto value = ui->tableWidget->itemAt(Input1->text().toInt(), 0)->text();
+    ui->tableWidget->removeRow(Input1->text().toInt());
+    json.remove(key);
+    //проверка, остались ли мероприятия на текщую дату
+    bool ContainsD = false;
+    for (auto i : json.keys()) {
+        if (i.toStdString().substr(0, 10) == key.toStdString().substr(0, 10)) {
+                ContainsD = true;
         }
     }
-    model->removeRow(row);
-    on_ShowCurentDatesButton_clicked();//
-    ui->tableView->sortByColumn(1, Qt::AscendingOrder);
+    //если у даты больще нет мероприятий возращаем дате привычный вид в календаре
+    if (!ContainsD) {
+        QTextCharFormat Format;
+        QFont f = QFont("MS Shell Dig 2", 8);
+        f.setOverline(false);
+        Format.setFont(f);
+        ui->calendarWidget->setDateTextFormat(QDate::fromString(QString::fromStdString(key.toStdString().substr(0, 10)), "yyyy.MM.dd"), Format);
+    }
+    //запись json в файл
+    QFile file("./Calendar" + Log + ".json");
+    file.open(QIODevice::WriteOnly);
+    QJsonArray docToWrite = {};
+    docToWrite.append(json);
+    doc.setArray(docToWrite);
+    file.write("{\"Dates\":"+doc.toJson()+"}");
+    file.close();
 }
 
-
-void Calendar::on_tableView_clicked(const QModelIndex &index)
-{
-    row = index.row();
-}
-
-
+//нажатие на дату в календаре
 void Calendar::on_calendarWidget_clicked(const QDate &date)
 {
-    on_ShowFullButton_clicked();
-    string m_date = date.toString("yyyy.MM.dd").toStdString();
-    for (int i = 0; i < ui->tableView->model()->rowCount(); i++) {
-        string str = ui->tableView->model()->data(ui->tableView->model()->index(i, 1)).toString().toStdString().substr(0, 10);
-        if (str != m_date) {
-            ui->tableView->hideRow(i);
+    CurrentDate = date.toString("yyyy.MM.dd").toStdString();
+    ui->tableWidget->setRowCount(1);
+    for (auto i = json.begin(); i != json.end(); i++) {
+        if (i.key().toStdString().substr(0, 10) == CurrentDate) {
+            ui->tableWidget->insertRow(1);
+            ui->tableWidget->setItem(ui->tableWidget->rowCount() - 1, 0, new QTableWidgetItem(i.value().toString()));
+            ui->tableWidget->setItem(ui->tableWidget->rowCount() - 1, 1, new QTableWidgetItem(i.key()));
         }
     }
-    ui->tableView->sortByColumn(1, Qt::AscendingOrder);
 }
 
+//вывод актуальных дат в таблицу
+void Calendar::on_ShowCurrentDatesButton_clicked() {
+    CurrentDate = "empty";//установка дата не выбрана
+    string m_date = QDate::currentDate().toString("yyyy.MM.dd").toStdString();
+    ui->tableWidget->setRowCount(json.count() + 1);
+    ui->tableWidget->setItem(0, 0, new QTableWidgetItem("Название"));
+    ui->tableWidget->setItem(0, 1, new QTableWidgetItem("Дата и время"));
+    int j = 0;
+    for (auto i = json.begin(); i != json.end(); i++, j++) {
+        if (i.key().toStdString().substr(0, 10) >= m_date) {
+            ui->tableWidget->setItem(j, 0, new QTableWidgetItem(i.value().toString()));
+            ui->tableWidget->setItem(j, 1, new QTableWidgetItem(i.key()));
+        }
+    }
+}
 
+//выход из аккаунта
 void Calendar::on_SignOutButton_clicked()
 {
-    ofstream CurrentDates("./" + Log.toStdString() + "FullDates.txt");
     QWidget *m_Authortization = new Authorization;
     m_Authortization->setGeometry(geometry());
     m_Authortization->show();
     close();
 }
-//важно: при удалении индексы в NewDates должны меняться. При удалении нужно включать или текущий день, ели он выбран или актуальные даты
 
-void Calendar::on_ShowFullButton_clicked()
+//добавление данных
+void Calendar::on_InputDataOkButton_Clicked()
 {
-    const string dateTime = QDateTime::currentDateTime().toString("yyyy.MM.dd").toStdString();
-    for (int i = 0; i < ui->tableView->model()->rowCount(); i++) {
-        ui->tableView->showRow(i);
-    }
-    ui->tableView->sortByColumn(1, Qt::AscendingOrder);
-}
-
-
-void Calendar::on_ShowCurentDatesButton_clicked()
-{
-    const string dateTime = QDateTime::currentDateTime().toString("yyyy.MM.dd").toStdString();
-    for (int i = 0; i < ui->tableView->model()->rowCount(); i++) {
-        string str = ui->tableView->model()->data(ui->tableView->model()->index(i, 1)).toString().toStdString().substr(0, 10);
-        if (str < dateTime) {
-            ui->tableView->hideRow(i);
+    if (Input1->text() != "" && json.find(Input2->text()) == json.end()) {//если дата с текущим временем существует, то добавить данные нельзя
+        //добалвение в Json
+        json.insert(Input2->text(), Input1->text());
+        //запись json в файл
+        QFile file("./Calendar" + Log + ".json");
+        file.open(QIODevice::WriteOnly);
+        QJsonArray docToWrite = {};
+        docToWrite.append(json);
+        doc.setArray(docToWrite);
+        file.write("{\"Dates\":"+doc.toJson()+"}");
+        file.close();
+        //Вызов нужного метода
+        if (Input2->text().toStdString().substr(0, 10) == CurrentDate) {//если выбрана текущая дата и даты совпадают
+                on_calendarWidget_clicked(QDate::fromString(QString::fromStdString(CurrentDate), "yyyy.MM.dd"));
         }
         else {
-            ui->tableView->showRow(i);
+            on_ShowCurrentDatesButton_clicked();
+            if (!ui->calendarWidget->dateTextFormat().values().first().font().overline()) {//Выделение даты в календаре, если дата не выделена
+                QTextCharFormat Format;
+                QFont f = QFont("MS Shell Dig 2", 14);
+                f.setOverline(true);
+                Format.setFont(f);
+                ui->calendarWidget->setDateTextFormat(QDate::fromString(Input1->text(),"yyyy.MM.dd"), Format);
+            }
         }
     }
-    ui->tableView->sortByColumn(1, Qt::AscendingOrder);
-}
-
-void Calendar::on_SaveChangesButton_clicked()
-{
-
-    int count = 0;
-    NewDatesNumbers.sort();
-    for (int i :NewDatesNumbers) {
-        row = i - count;
-        if (!isDataValid()) {
-            on_DelButton_clicked();
-            count++;
-            //Важно: переделать count
-        }
+    else {
+        char a[500] = "Дата с текущим временем уже существует\n"
+                      "или введена пустая строка";
+        QMessageBox::warning(this, "Ошибка", a);
     }
 }
-

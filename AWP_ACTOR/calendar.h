@@ -3,15 +3,17 @@
 
 #include <QWidget>
 #include <authorization.h>
-#include <QWidget>
-#include <QtSql>
-#include <QSqlDatabase>
-#include <QSqlQuery>
-#include <QSqlTableModel>
 #include <string>
 #include <QLabel>
 #include <QLineEdit>
-#include<fstream>
+#include <QFile>
+#include <QJsonObject>
+#include <QFileDialog>
+#include <QStandardItem>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonParseError>
+#include <QDateTimeEdit>
 using namespace std;
 
 namespace Ui {
@@ -27,6 +29,8 @@ public:
     ~Calendar();
     QString Log;
 
+protected slots:
+    void on_MoveButtonOk_cliked();
 private slots:
     void on_MoveButton_clicked();
 
@@ -34,31 +38,29 @@ private slots:
 
     void on_DelButton_clicked();
 
-    void on_tableView_clicked(const QModelIndex &index);
-
     void on_calendarWidget_clicked(const QDate &date);
 
     void on_SignOutButton_clicked();
 
-    void AddData();
+    void on_InputDataOkButton_Clicked();
 
-    void on_ShowCurentDatesButton_clicked();
+    void on_DelButtonOk_clicked();
 
-    void on_SaveChangesButton_clicked();
+    void on_ShowCurrentDatesButton_clicked();
 
 private:
     Ui::Calendar *ui;
-    QSqlDatabase db;
-    QSqlQuery *query;
-    QSqlTableModel *model;
-    int row;
+    QWidget *window;
     QLineEdit *Input1;
-    QLineEdit *Input2;
-    QString str;
-    bool isDataValid();
+    QDateTimeEdit *Input2;
     void on_ShowFullButton_clicked();
     list<int> NewDatesNumbers;
-    bool FirstAdd = false;
+    QJsonDocument doc;
+    QJsonArray docAr;
+    QJsonParseError docError;
+    QJsonObject UsersDataJson;
+    QJsonObject json;
+    string CurrentDate = "empty";
 };
 
 #endif // CALENDAR_H

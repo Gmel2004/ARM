@@ -12,11 +12,13 @@ class Film : public QWidget
     Q_OBJECT
 
 public:
-    explicit Film(QWidget *parent = nullptr);
+    explicit Film(QString m_Log, QString m_name, QWidget *parent);
     ~Film();
 
 private:
     Ui::Film *ui;
+    QString Log;
+    QString name;
 };
 
 #endif // FILM_H

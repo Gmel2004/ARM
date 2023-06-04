@@ -26,7 +26,8 @@ public:
     QJsonDocument doc;
     QJsonArray docAr;
     QJsonParseError docError;
-
+    QJsonObject UsersDataJson;
+    QJsonObject json;
 private slots:
     void on_RegisterButton_clicked();
 
@@ -37,8 +38,6 @@ private:
     void ToCalendar();
     QString Log, Pas;
     QMap<QString, QString> UsersData;
-    QJsonObject UsersDataJson;
-    QJsonObject json;
     bool isLogValid();
     bool isPasValid();
 

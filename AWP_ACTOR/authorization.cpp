@@ -6,8 +6,8 @@ Authorization::Authorization(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::Authorization)
 {
-    QFile file("./Users.json");
     ui->setupUi(this);
+    QFile file("./Users.json");
     setWindowTitle("Авторизация");
     file.open(QIODevice::ReadOnly|QFile::Text);
     doc = QJsonDocument::fromJson(QByteArray(file.readAll()), &docError);
@@ -56,8 +56,6 @@ bool Authorization::isPasValid()
     }
     return Valid;
 }
-
-//чтение бд (JSon)
 
 
 void Authorization::on_RegisterButton_clicked()
@@ -129,4 +127,3 @@ void Authorization::on_LoginButton_clicked()
     }
 
 }
-
