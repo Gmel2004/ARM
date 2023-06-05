@@ -21,7 +21,7 @@ Film::~Film()
 {
     delete ui;
 }
-
+//Сохранение изменений
 void Film::on_SaveButton_clicked()
 {
     QFile file("./" + Log + name + ".txt");
@@ -30,7 +30,7 @@ void Film::on_SaveButton_clicked()
     file.close();
 }
 
-
+//Возвращение на окно календаря
 void Film::on_BackButton_clicked()
 {
     QWidget *m_Calendar = new Calendar(Log, nullptr);

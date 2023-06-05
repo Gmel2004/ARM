@@ -49,7 +49,7 @@ void Calendar::on_MoveButton_clicked()
     QPushButton *okButton = new QPushButton(tr("OK"));
 
     QGridLayout *layout = new QGridLayout;
-    layout->addWidget(new QLabel(tr("Введите номер ячейки, для перехода к странице мероприятия: ")), 0, 0);
+    layout->addWidget(new QLabel(tr("Введите номер строки, для перехода к странице мероприятия: ")), 0, 0);
     layout->addWidget(Input1, 0, 1);
     layout->addWidget(okButton, 1, 1, Qt::AlignRight);
     layout->setSizeConstraint(QLayout::SetFixedSize);
@@ -107,7 +107,7 @@ void Calendar::on_DelButton_clicked()
     QPushButton *okButton = new QPushButton(tr("OK"));
 
     QGridLayout *layout = new QGridLayout;
-    layout->addWidget(new QLabel(tr("Введите номер ячейки, которую нужно удалить: ")), 0, 0);
+    layout->addWidget(new QLabel(tr("Введите номер строки, которую нужно удалить: ")), 0, 0);
     layout->addWidget(Input1, 0, 1);
     layout->addWidget(okButton, 1, 1, Qt::AlignRight);
     layout->setSizeConstraint(QLayout::SetFixedSize);
@@ -126,7 +126,7 @@ void Calendar::on_DelButtonOk_clicked() {
         auto value = ui->tableWidget->item(Input1->text().toInt() - 1, 0)->text();
         ui->tableWidget->removeRow(Input1->text().toInt());
         json.remove(key);
-        //проверка, остались ли мероприятия на текщую дату
+        //проверка, остались ли мероприятия на текущую дату
         bool ContainsD = false;
         for (auto i : json.keys()) {
             if (i.toStdString().substr(0, 10) == key.toStdString().substr(0, 10)) {
