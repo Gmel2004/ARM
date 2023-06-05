@@ -109,9 +109,6 @@
          <property name="cursor">
           <cursorShape>PointingHandCursor</cursorShape>
          </property>
-         <property name="toolTip">
-          <string>После заполнения строки нажмите Enter</string>
-         </property>
          <property name="statusTip">
           <string/>
          </property>
@@ -164,13 +161,6 @@
        </item>
       </layout>
      </item>
-     <item row="0" column="1">
-      <widget class="QCalendarWidget" name="calendarWidget">
-       <property name="styleSheet">
-        <string notr="true"/>
-       </property>
-      </widget>
-     </item>
      <item row="2" column="1" colspan="3">
       <spacer name="horizontalSpacer">
        <property name="orientation">
@@ -197,6 +187,13 @@
        </property>
       </spacer>
      </item>
+     <item row="0" column="1">
+      <widget class="QCalendarWidget" name="calendarWidget">
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item row="2" column="0">
@@ -214,6 +211,12 @@
    </item>
    <item row="4" column="0">
     <widget class="QTableWidget" name="tableWidget">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::NoSelection</enum>
+     </property>
      <attribute name="horizontalHeaderVisible">
       <bool>false</bool>
      </attribute>

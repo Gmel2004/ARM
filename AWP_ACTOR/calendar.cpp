@@ -63,8 +63,11 @@ void Calendar::on_MoveButton_clicked()
 //Переход на страницу мероприятия
 void Calendar::on_MoveButtonOk_cliked() {
     if ((Input1->text().toInt() > 1) && (Input1->text().toInt() - 1 < ui->tableWidget->rowCount())) {
+        window->close();
         QWidget *m_Film = new Film(Log, ui->tableWidget->item(Input1->text().toInt() - 1, 0)->text(), nullptr);
         m_Film->setGeometry(geometry());
+        m_Film->setWindowTitle("Мероприятие");
+        m_Film->setFixedSize(m_Film->width(), m_Film->height());
         m_Film->show();
         close();
     }
@@ -191,7 +194,9 @@ void Calendar::on_SignOutButton_clicked()
 {
     QWidget *m_Authortization = new Authorization;
     m_Authortization->setGeometry(geometry());
+    m_Authortization->setFixedSize(m_Authortization->width(), m_Authortization->height());
     m_Authortization->show();
+    window->close();
     close();
 }
 

@@ -15,6 +15,12 @@ Authorization::Authorization(QWidget *parent)
     QJsonValue Users = doc.object().value("Users");
     docAr = QJsonValue(Users).toArray();
     json = docAr.at(0).toObject();
+    QPixmap bkgnd(":/Background/RNFSLG.jpg");
+    bkgnd = bkgnd.scaled(this->size(), Qt::IgnoreAspectRatio);
+    QPalette palette;
+    palette.setBrush(QPalette::Window, bkgnd);
+    this->setPalette(palette);
+    setFixedSize(width(), height());
 }
 
 Authorization::~Authorization()
@@ -25,8 +31,9 @@ Authorization::~Authorization()
 void Authorization::ToCalendar() {
     QWidget *m_Calendar = new Calendar(Log, nullptr);
     m_Calendar->setGeometry(geometry());
+    m_Calendar->setFixedSize(m_Calendar->width(), m_Calendar->height());
     m_Calendar->show();
-    hide();
+    close();
 }
 
 bool Authorization::isLogValid()
