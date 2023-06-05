@@ -30,7 +30,7 @@ Calendar::Calendar(QString m_Log, QWidget *parent) :
     }
     //вывод актуальных дат в таблицу
     on_ShowCurrentDatesButton_clicked();
-    for(int i = 0; i < 2; i++) {//важно, если будет resize, то нужно как-то менять размер?
+    for(int i = 0; i < 2; i++) {
         ui->tableWidget->setColumnWidth(i, (width() - 38)/2);
     }
 
@@ -62,6 +62,7 @@ void Calendar::on_MoveButton_clicked()
 
 //Переход на страницу мероприятия
 void Calendar::on_MoveButtonOk_cliked() {
+    window->close();
     if ((Input1->text().toInt() > 1) && (Input1->text().toInt() - 1 < ui->tableWidget->rowCount())) {
         window->close();
         QWidget *m_Film = new Film(Log, ui->tableWidget->item(Input1->text().toInt() - 1, 0)->text(), nullptr);
@@ -119,6 +120,7 @@ void Calendar::on_DelButton_clicked()
 
 //удаление данных
 void Calendar::on_DelButtonOk_clicked() {
+    window->close();
     if ((Input1->text().toInt() > 1) && (Input1->text().toInt() - 1 < ui->tableWidget->rowCount())) {
         auto key = ui->tableWidget->item(Input1->text().toInt() - 1, 1)->text();
         auto value = ui->tableWidget->item(Input1->text().toInt() - 1, 0)->text();
@@ -174,17 +176,17 @@ void Calendar::on_calendarWidget_clicked(const QDate &date)
 void Calendar::on_ShowCurrentDatesButton_clicked() {
     CurrentDate = "empty";//установка дата не выбрана
     string m_date = QDate::currentDate().toString("yyyy.MM.dd").toStdString();
-    ui->tableWidget->setRowCount(json.count() + 1);
+    ui->tableWidget->setRowCount(1);
     ui->tableWidget->setColumnCount(2);
     ui->tableWidget->setItem(0, 0, new QTableWidgetItem("Название"));
     ui->tableWidget->item(0, 0)->setTextAlignment(Qt::AlignCenter);
     ui->tableWidget->setItem(0, 1, new QTableWidgetItem("Дата и время"));
     ui->tableWidget->item(0, 1)->setTextAlignment(Qt::AlignCenter);
-    int j = 1;
-    for (auto i = json.begin(); i != json.end(); i++, j++) {
+    for (auto i = json.begin(); i != json.end(); i++) {
         if (i.key().toStdString().substr(0, 10) >= m_date) {
-            ui->tableWidget->setItem(j, 0, new QTableWidgetItem(i.value().toString()));
-            ui->tableWidget->setItem(j, 1, new QTableWidgetItem(i.key()));
+            ui->tableWidget->insertRow(ui->tableWidget->rowCount());
+            ui->tableWidget->setItem(ui->tableWidget->rowCount() - 1, 0, new QTableWidgetItem(i.value().toString()));
+            ui->tableWidget->setItem(ui->tableWidget->rowCount() - 1, 1, new QTableWidgetItem(i.key()));
         }
     }
 }
@@ -196,13 +198,13 @@ void Calendar::on_SignOutButton_clicked()
     m_Authortization->setGeometry(geometry());
     m_Authortization->setFixedSize(m_Authortization->width(), m_Authortization->height());
     m_Authortization->show();
-    window->close();
     close();
 }
 
 //добавление данных
 void Calendar::on_InputDataOkButton_Clicked()
 {
+    window->close();
     if (Input1->text() != "" && json.find(Input2->text()) == json.end()) {//если дата с текущим временем существует, то добавить данные нельзя
         //добалвение в Json
         json.insert(Input2->text(), Input1->text());
@@ -237,9 +239,9 @@ void Calendar::on_InputDataOkButton_Clicked()
     }
 }
 
+//поиск мероприятий
 void Calendar::on_SearchButton_clicked()
 {
-    ui->lineEditSearch->setText("");
     ui->tableWidget->setRowCount(1);
     for (auto i = json.begin(); i != json.end(); i++) {
         if (i.value().toString() == ui->lineEditSearch->text()) {
@@ -248,5 +250,6 @@ void Calendar::on_SearchButton_clicked()
             ui->tableWidget->setItem(ui->tableWidget->rowCount() - 1, 1, new QTableWidgetItem(i.key()));
         }
     }
+    ui->lineEditSearch->setText("");
 }
 
