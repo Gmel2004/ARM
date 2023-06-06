@@ -58,8 +58,8 @@ bool Authorization::isPasValid()
     //Не менее 8 символов
     //Не содержит пробелов
     bool Valid = (Pas.length() > 7);
-    for (int i = 0; i < Log.length() && Valid; i++) {
-        Valid = (Log[i] != ' ');
+    for (int i = 0; i < Pas.length() && Valid; i++) {
+        Valid = (Pas[i] != ' ');
     }
     return Valid;
 }
